@@ -1,49 +1,69 @@
-# TISS Backend
+# TISS Backend - Documentação Completa
 
-Este projeto é um **backend em FastAPI** para a geração e persistência de guias no **padrão TISS** dos planos de saúde do Brasil. Ele integra com o **Docling** para renderizar as guias no formato XML.
+## Visão Geral
+Este projeto é um **backend em FastAPI** para geração e persistência de guias no **padrão TISS** dos planos de saúde brasileiros. Integra com o **Docling** para renderização das guias em formato XML.
 
-## Funcionalidades
-
-- **Autenticação via Token Estático**: O backend requer um token específico, enviado no header de cada requisição.
-- **Geração de Guias TISS**: Através da rota POST `/guides`, é possível enviar os dados para gerar a guia TISS (consulta, SADT ou internação) e retornar o XML gerado.
-- **Persistência de Guias**: Todas as guias geradas são salvas em um banco de dados PostgreSQL, incluindo o conteúdo do XML.
-- **Busca e Listagem de Guias**: É possível buscar guias salvas por nome do paciente (`GET /guides?patient_name={nome}`) e obter uma guia por ID (`GET /guides/{guide_id}`).
+## Funcionalidades Principais
+- **Autenticação Segura**
+  - Token estático no header das requisições
+- **Geração de Guias TISS**
+  - Tipos suportados: consulta, SADT e internação
+  - Retorno em formato XML
+- **Gestão de Guias**
+  - Persistência em PostgreSQL
+  - Busca por nome do paciente
+  - Recuperação por ID
 
 ## Arquitetura
+| Componente       | Tecnologia     | Função                           |
+|------------------|----------------|----------------------------------|
+| Backend          | FastAPI        | API RESTful                      |
+| Renderização     | Docling        | Geração de XML TISS              |
+| Banco de Dados   | PostgreSQL     | Armazenamento persistente        |
+| ORM              | SQLAlchemy     | Comunicação com DB               |
+| Containerização  | Docker         | Ambiente isolado e reproduzível  |
 
-- **FastAPI**: Framework para o backend RESTful.
-- **Docling**: Usado para gerar as guias TISS a partir dos dados recebidos.
-- **PostgreSQL**: Banco de dados utilizado para persistir as guias geradas.
-- **SQLAlchemy**: ORM utilizado para comunicação com o banco de dados.
-- **Docker**: Contêineres para o ambiente backend e banco de dados.
+## Configuração do Ambiente
 
-## Inicialização do Projeto
+### Pré-requisitos
+- Docker
+- Docker Compose
+- Git (para clonar o repositório)
 
-### 1. Clone o repositório
+### Passos de Instalação
+1. **Clonar repositório**
+   ```bash
+   git clone https://github.com/marcelbleasby/Backend-TISS
+   cd Backend-TISS
+   ```
 
-```bash
-git clone https://github.com/marcelbleasby/Backend-TISS
-cd Backend-TISS
+2. **Configurar variáveis de ambiente**
+   Criar arquivo `.env` na raiz com:
+   ```env
+   DATABASE_URL=postgresql://tiss_user:tiss_password@db:5432/tiss
+   STATIC_TOKEN=seu_token_super_seguro
+   ```
+
+3. **Inicializar containers**
+   ```bash
+   docker-compose up --build
+   ```
+
+## Acesso à API
+- **URL Base**: `http://localhost:8000`
+- **Documentação Interativa**: `http://localhost:8000/docs` (Swagger UI)
+
+## Endpoints
+
+### POST /guides
+Gera nova guia TISS e persiste no banco de dados.
+
+**Headers:**
+```
+Authorization: Bearer <STATIC_TOKEN>
 ```
 
-### 2. Criar o seu arquivo .env
-Crie um arquivo na raiz do seu projeto
-```bash
-DATABASE_URL=postgresql://tiss_user:tiss_password@db:5432/tiss
-STATIC_TOKEN=seu_token_super_seguro
-```
-### 3. Montar seu docker-compose para aplicação
-Execute o seguinte comando para inicializar o projeto:
-```bash
-docker-compose up --build
-```
-### 4. Acesse seu backend
-Após a inicialização, o backend estará disponível em http://localhost:8000. O Swagger UI estará acessível em http://localhost:8000/docs
-
-### 5. Teste sua API
-Você pode testar as seguintes rotas:
-	•	POST /guides: Envie os dados no formato GuideInput para gerar uma guia TISS e salvar no banco de dados.
-Exemplo de corpo de requisição:
+**Exemplo de Request Body:**
 ```json
 {
   "guide_type": "consulta",
@@ -56,44 +76,86 @@ Exemplo de corpo de requisição:
   }
 }
 ```
-•	GET /guides: Liste todas as guias salvas. Pode filtrar pela query patient_name.
-•	GET /guides/{guide_id}: Busque uma guia específica pelo ID.
 
-O resto das funcionalidades é com vocês
+**Respostas:**
+- 201 Created: Guia gerada com sucesso
+- 401 Unauthorized: Token inválido/missing
+- 422 Unprocessable Entity: Dados inválidos
 
-Docker Compose
+### GET /guides
+Lista todas as guias, com filtro opcional.
 
-O docker-compose.yml define dois serviços:
-	•	db: Servidor PostgreSQL com o banco de dados tiss.
-	•	backend: Contêiner com o FastAPI, que depende do banco de dados e expõe a API na porta 8000.
+**Parâmetros Query:**
+- `patient_name` (opcional): Filtra por nome do paciente
 
-Variáveis de Ambiente
-	•	DATABASE_URL: URL de conexão com o banco de dados PostgreSQL.
-	•	STATIC_TOKEN: Token de autenticação para acessar as rotas da API.
+**Exemplo:**
+```
+GET /guides?patient_name=João
+```
 
-Dependências
+### GET /guides/{guide_id}
+Recupera uma guia específica por ID.
 
-As dependências do projeto estão definidas em requirements.txt:
-	•	fastapi: Framework para criar a API RESTful.
-	•	uvicorn: Servidor ASGI para rodar o FastAPI.
-	•	sqlalchemy: ORM para interação com o banco de dados.
-	•	psycopg2-binary: Driver PostgreSQL para SQLAlchemy.
-	•	pydantic: Biblioteca para validação de dados.
-	•	python-dotenv: Carregamento das variáveis de ambiente do arquivo .env.
+**Exemplo:**
+```
+GET /guides/1
+```
 
-Como Funciona
-	1.	O frontend envia os dados para o backend através de uma requisição POST.
-	2.	O backend usa o Docling CLI para gerar o arquivo XML TISS.
-	3.	O XML gerado é salvo no banco de dados PostgreSQL juntamente com as informações da guia (tipo, paciente, provedor, operadora).
-	4.	O usuário pode buscar, listar ou obter detalhes sobre as guias salvas.
+## Estrutura do Projeto
+```
+Backend-TISS/
+├── app/
+│   ├── __init__.py
+│   ├── main.py          # Configuração FastAPI
+│   ├── models.py        # Modelos SQLAlchemy
+│   ├── schemas.py       # Modelos Pydantic
+│   └── database.py      # Configuração DB
+├── .env                 # Variáveis de ambiente
+├── requirements.txt     # Dependências Python
+└── docker-compose.yml   # Configuração Docker
+```
 
-Contribuindo
+## Dependências
+Listadas em `requirements.txt`:
+```
+fastapi==0.68.0
+uvicorn==0.15.0
+sqlalchemy==1.4.22
+psycopg2-binary==2.9.1
+pydantic==1.8.2
+python-dotenv==0.19.0
+```
 
-Se desejar contribuir, siga os passos abaixo:
-	1.	Faça um fork do repositório.
-	2.	Crie uma branch para a sua funcionalidade (git checkout -b feature-nome).
-	3.	Faça commit das suas mudanças (git commit -am 'Adiciona nova funcionalidade').
-	4.	Push para a branch (git push origin feature-nome).
-	5.	Abra um Pull Request.
+## Serviços Docker
+| Serviço    | Imagem           | Porta  | Descrição                     |
+|------------|------------------|--------|-------------------------------|
+| backend    | Custom FastAPI   | 8000   | Aplicação principal           |
+| db         | postgres:13      | 5432   | Banco de dados PostgreSQL     |
 
+## Modelos de Dados
 
+### Guide (Banco de Dados)
+- id: Integer (PK)
+- guide_type: String
+- patient_name: String
+- provider_name: String
+- operator_name: String
+- xml_content: Text
+- created_at: DateTime
+
+### GuideInput (Pydantic)
+- guide_type: Enum (consulta, sadt, internacao)
+- patient_name: str
+- provider_name: str
+- operator_name: str
+- data: dict (dados específicos da guia)
+
+## Fluxo de Trabalho Recomendado
+1. Gerar guia via POST /guides
+2. Armazenar localmente o ID retornado
+3. Recuperar guias quando necessário via GET /guides ou GET /guides/{id}
+
+## Observações Importantes
+- O token estático deve ser mantido em segredo
+- O formato dos dados específicos (`data`) varia conforme o tipo de guia
+- Todas as requisições devem incluir o header de autorização
