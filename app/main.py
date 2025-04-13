@@ -1,16 +1,15 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
 
-from app.models import Guide
-from app import guides
-from app.database import Base, engine, get_db
+from app.database import engine
+from app.models import Base
 from app.core.auth import verify_token
+from app.api import guides
 
-app = FastAPI()
+app = FastAPI(title="TISS Backend", description="Backend API for TISS application")
 
-# Criar as tabelas
+# Create database tables
 Base.metadata.create_all(bind=engine)
 
 # CORS Middleware
@@ -30,6 +29,7 @@ async def check_auth(request: Request, call_next):
         return JSONResponse(status_code=e.status_code, content={"detail": e.detail})
     return await call_next(request)
 
+# Include routers
 app.include_router(guides.router, prefix="/guides", tags=["Guides"])
 
 @app.get("/")

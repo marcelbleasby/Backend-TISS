@@ -1,12 +1,15 @@
-from sqlalchemy import Column, DateTime
-from sqlalchemy.ext.declarative import as_declarative, declared_attr
-from datetime import datetime
+from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.orm import DeclarativeBase
+from datetime import datetime, timezone
 
-@as_declarative()
-class Guide:
-    @declared_attr
-    def __tablename__(cls):
-        return cls.__name__.lower()
+class Base(DeclarativeBase):
+    pass
 
-    created_at = Column(DateTime, default=lambda: datetime.now(datetime.timezone.utc), nullable=False)
-    updated_at = Column(DateTime, default=lambda: datetime.now(datetime.timezone.utc), onupdate=lambda: datetime.now(datetime.timezone.utc), nullable=False)
+class Guide(Base):
+    __tablename__ = "guides"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    email = Column(String, unique=True, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)
