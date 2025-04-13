@@ -1,7 +1,7 @@
 # backend/app/core/auth.py
 from fastapi import Request, HTTPException
 
-STATIC_TOKEN = "TESTE"
+STATIC_TOKEN = "my_secure_static_token_12345"
 
 def verify_token(request: Request):
     auth_header = request.headers.get("Authorization")
