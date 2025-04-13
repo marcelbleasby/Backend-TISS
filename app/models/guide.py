@@ -1,6 +1,6 @@
 # backend/app/models/guide.py
 from sqlalchemy import Column, Integer, String, Text
-from app.models import Base
+from app.models.base import Base
 
 class Guide(Base):
     __tablename__ = "guides"

@@ -2,7 +2,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import os
-from app.models import Base
+from app.models.base import Base
 
 POSTGRES_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/tiss")
 
